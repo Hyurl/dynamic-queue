@@ -1,9 +1,9 @@
-import { EventEmitter } from "events";
+const onNewTask = Symbol("onNewTask");
 
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
-export class Queue extends EventEmitter {
+export class Queue {
     /**
      * Whether the queue is running. A queue is auto-started when it's 
      * instantiated, unless you call `stop()`, otherwise this property is 
@@ -17,7 +17,6 @@ export class Queue extends EventEmitter {
      * @param task The first task that is about to run. 
      */
     constructor(task?: (next?: Function) => void | Promise<void>) {
-        super();
         task ? this.tasks.push(task) : null;
         this.run();
 
@@ -29,7 +28,13 @@ export class Queue extends EventEmitter {
     /** Pushes a new task to the queue. */
     push(task: (next?: Function) => void | Promise<void>): this {
         this.tasks.push(task);
-        this.emit("newTask");
+
+        if (this[onNewTask]) {
+            let fn = this[onNewTask];
+            this[onNewTask] = null;
+            fn();
+        }
+
         return this;
     }
 
@@ -56,8 +61,8 @@ export class Queue extends EventEmitter {
             } else {
                 return this.run();
             }
-        } else {
-            return this.once("newTask", () => this.run());
+        } else if (!this[onNewTask]) {
+            this[onNewTask] = () => this.run();
         }
     }
 }

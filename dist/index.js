@@ -1,16 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const events_1 = require("events");
+const onNewTask = Symbol("onNewTask");
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
-class Queue extends events_1.EventEmitter {
+class Queue {
     /**
      * Instantiates a new queue.
      * @param task The first task that is about to run.
      */
     constructor(task) {
-        super();
         /**
          * Whether the queue is running. A queue is auto-started when it's
          * instantiated, unless you call `stop()`, otherwise this property is
@@ -27,7 +26,11 @@ class Queue extends events_1.EventEmitter {
     /** Pushes a new task to the queue. */
     push(task) {
         this.tasks.push(task);
-        this.emit("newTask");
+        if (this[onNewTask]) {
+            let fn = this[onNewTask];
+            this[onNewTask] = null;
+            fn();
+        }
         return this;
     }
     /** Stops the queue. */
@@ -56,8 +59,8 @@ class Queue extends events_1.EventEmitter {
                 return this.run();
             }
         }
-        else {
-            return this.once("newTask", () => this.run());
+        else if (!this[onNewTask]) {
+            this[onNewTask] = () => this.run();
         }
     }
 }
