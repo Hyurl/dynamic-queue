@@ -30,3 +30,19 @@ queue.push(() => {
     console.log(outs); // => ['Hello, World!', 'Hi, Ayon!', 'Nice to meet you!']
 });
 ```
+
+## Notes
+
+A queue is auto-started when it's instantiated, unless calling `queue.close()`,
+otherwise the queue will continue running any task that pushed to internal 
+list.
+
+The queue will be automatically closed when no more procedures are going to 
+run, you don't have to call `queue.close()` normally.
+
+Be aware of pushing promise tasks, since a promise will run the executor body
+before finishing the previous task.
+
+When push an AysncFunction, you can either pass or don't pass the `next` 
+argument. If it's passed, you must call it manually. If it's omitted, the next
+task will be called when the current one finishes running.

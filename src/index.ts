@@ -48,7 +48,7 @@ export class Queue extends EventEmitter {
             if (task instanceof Promise) {
                 return task.then(() => this.run());
             } else if (typeof task == "function") {
-                if (task.constructor.name == "AsyncFunction") {
+                if (task.constructor.name == "AsyncFunction" && task.length == 0) {
                     return (<Promise<any>>task()).then(() => this.run());
                 } else {
                     return task(() => this.run());

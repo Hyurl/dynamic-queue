@@ -45,7 +45,7 @@ class Queue extends events_1.EventEmitter {
                 return task.then(() => this.run());
             }
             else if (typeof task == "function") {
-                if (task.constructor.name == "AsyncFunction") {
+                if (task.constructor.name == "AsyncFunction" && task.length == 0) {
                     return task().then(() => this.run());
                 }
                 else {

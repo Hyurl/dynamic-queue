@@ -10,16 +10,23 @@ var queue = new Queue((next) => {
 });
 
 // push a promise.
-queue.push(Promise.resolve("Hi, Ayon!").then(value => {
+queue.push(new Promise((resolve) => {
+    setTimeout(() => {
+        resolve("Hi, Ayon!");
+    }, 100);
+}).then(value => {
     outs.push(value);
 }));
 
 // push a funciton.
-queue.push(function (next) {
+queue.push(new Promise(resolve => {
+    setTimeout(() => {
+        resolve();
+    }, 100);
+}).then(() => {
     assert.deepStrictEqual(outs, ["Hello, World!", "Hi, Ayon!"]);
     outs.pop();
-    next();
-});
+}));
 
 // push another functon.
 queue.push(function (next) {
