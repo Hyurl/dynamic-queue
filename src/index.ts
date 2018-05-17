@@ -1,5 +1,3 @@
-const onNewTask = Symbol("onNewTask");
-
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
@@ -11,6 +9,7 @@ export class Queue {
      */
     isRunning: boolean = true;
     private tasks: Array<(next?: Function) => void | Promise<void>> = [];
+    private onNewTask: () => any = null;
 
     /**
      * Instantiates a new queue.
@@ -29,16 +28,16 @@ export class Queue {
     push(task: (next?: Function) => void | Promise<void>): this {
         this.tasks.push(task);
 
-        if (this[onNewTask]) {
-            let fn = this[onNewTask];
-            this[onNewTask] = null;
+        if (this.onNewTask) {
+            let fn = this.onNewTask;
+            this.onNewTask = null;
             fn();
         }
 
         return this;
     }
 
-    /** Stops the queue. */
+    /** Stops the queue manually. */
     stop(): void {
         this.isRunning = false;
     }
@@ -50,10 +49,10 @@ export class Queue {
         } else if (this.tasks.length) {
             let task = this.tasks.shift();
 
-            if (task instanceof Promise) {
+            if (typeof Promise == "function" && task instanceof Promise) {
                 return task.then(() => this.run());
             } else if (typeof task == "function") {
-                if (task.constructor.name == "AsyncFunction" && task.length == 0) {
+                if ((<any>task.constructor).name == "AsyncFunction" && task.length == 0) {
                     return (<Promise<any>>task()).then(() => this.run());
                 } else {
                     return task(() => this.run());
@@ -61,8 +60,8 @@ export class Queue {
             } else {
                 return this.run();
             }
-        } else if (!this[onNewTask]) {
-            this[onNewTask] = () => this.run();
+        } else if (!this.onNewTask) {
+            this.onNewTask = () => this.run();
         }
     }
 }

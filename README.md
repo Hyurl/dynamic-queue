@@ -2,6 +2,12 @@
 
 **Asynchronous Node.js queue with dynamic tasks.**
 
+## Install
+
+```sh
+npm i dynamic-queue --save
+```
+
 ## Example
 
 ```javascript
@@ -30,6 +36,13 @@ queue.push(() => {
     console.log(outs); // => ['Hello, World!', 'Hi, Ayon!', 'Nice to meet you!']
 });
 ```
+
+## API
+
+- `new Queue(task?: (next?: Function) => void | Promise<void>)`
+- `queue.push(task?: (next?: Function) => void | Promise<void>): this` Pushes 
+    a new task to the queue.
+- `queue.close()` Stops the queue manually.
 
 ## Notes
 

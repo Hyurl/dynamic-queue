@@ -1,6 +1,6 @@
 {
   "name": "dynamic-queue",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Asynchronous Node.js queue with dynamic tasks.",
   "main": "dist/index.js",
   "types": "src/index.ts",

@@ -1,4 +1,4 @@
-const { Queue } = require("../");
+const Queue = require("../").default;
 const assert = require("assert");
 
 var outs = [];
