@@ -35,7 +35,7 @@ queue.push(function (next) {
 });
 
 queue.push((next) => {
-    if (parseFloat(process.version.slice(1, 3)) > 7.6) {
+    if (parseFloat(process.version.slice(1)) > 7.6) {
         require("./test-async-function");
     }
 
