@@ -1,3 +1,9 @@
+function isAsyncFunction(fn: Function): boolean {
+    return Object.prototype.toString.apply(fn.constructor).slice(8, -1) == "AsyncFunction";
+}
+
+export type TaskFunction = (next?: (err?: Error) => void, err?: Error) => void | Promise<void>;
+
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
@@ -8,15 +14,15 @@ export class Queue {
      * `true`.
      */
     isRunning: boolean = true;
-    private tasks: Array<(next?: Function) => void | Promise<void>> = [];
-    private onNewTask: () => any = null;
+    private tasks: Array<TaskFunction> = [];
+    private onNewTask: () => void = null;
 
     /**
      * Instantiates a new queue.
      * @param task The first task that is about to run. 
      */
-    constructor(task?: (next?: Function) => void | Promise<void>) {
-        task ? this.tasks.push(task) : null;
+    constructor(task?: TaskFunction) {
+        task ? this.push(task) : null;
         this.run();
 
         process.on("beforeExit", (code) => {
@@ -25,7 +31,13 @@ export class Queue {
     }
 
     /** Pushes a new task to the queue. */
-    push(task: (next?: Function) => void | Promise<void>): this {
+    push(task: TaskFunction): this {
+        if (typeof task != "function") {
+            throw new TypeError("'task' must be a function");
+        } else if (!this.isRunning) {
+            throw new Error("pushing task to a stopped queue is not allowed");
+        }
+
         this.tasks.push(task);
 
         if (this.onNewTask) {
@@ -42,26 +54,29 @@ export class Queue {
         this.isRunning = false;
     }
 
+    /** Continues running the queue after it has been stopped or hanged. */
+    resume(): void {
+        this.isRunning = true;
+        this.run();
+    }
+
     /** Recursively runs tasks one by one. */
-    private run() {
+    private run(err: Error = null): void {
         if (!this.isRunning) {
             return;
         } else if (this.tasks.length) {
             let task = this.tasks.shift();
 
-            if (typeof Promise == "function" && task instanceof Promise) {
-                return task.then(() => this.run());
-            } else if (typeof task == "function") {
-                if ((<any>task.constructor).name == "AsyncFunction" && task.length == 0) {
-                    return (<Promise<any>>task()).then(() => this.run());
-                } else {
-                    return task(() => this.run());
-                }
+            if (isAsyncFunction(task) && task.length == 0) {
+                (<Promise<any>>task()).then(() => this.run(err));
+            } else if (task.length) {
+                task((_err) => this.run(_err), err);
             } else {
-                return this.run();
+                task();
+                this.run(err);
             }
         } else if (!this.onNewTask) {
-            this.onNewTask = () => this.run();
+            this.onNewTask = () => this.run(err);
         }
     }
 }

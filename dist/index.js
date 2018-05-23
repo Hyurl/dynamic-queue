@@ -1,5 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+function isAsyncFunction(fn) {
+    return Object.prototype.toString.apply(fn.constructor).slice(8, -1) == "AsyncFunction";
+}
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
@@ -18,7 +21,7 @@ var Queue = /** @class */ (function () {
         this.isRunning = true;
         this.tasks = [];
         this.onNewTask = null;
-        task ? this.tasks.push(task) : null;
+        task ? this.push(task) : null;
         this.run();
         process.on("beforeExit", function (code) {
             !code ? _this.isRunning = true : null;
@@ -26,6 +29,12 @@ var Queue = /** @class */ (function () {
     }
     /** Pushes a new task to the queue. */
     Queue.prototype.push = function (task) {
+        if (typeof task != "function") {
+            throw new TypeError("'task' must be a function");
+        }
+        else if (!this.isRunning) {
+            throw new Error("pushing task to a stopped queue is not allowed");
+        }
         this.tasks.push(task);
         if (this.onNewTask) {
             var fn = this.onNewTask;
@@ -34,35 +43,37 @@ var Queue = /** @class */ (function () {
         }
         return this;
     };
-    /** Stops the queue. */
+    /** Stops the queue manually. */
     Queue.prototype.stop = function () {
         this.isRunning = false;
     };
+    /** Continues running the queue after it has been stopped or hanged. */
+    Queue.prototype.resume = function () {
+        this.isRunning = true;
+        this.run();
+    };
     /** Recursively runs tasks one by one. */
-    Queue.prototype.run = function () {
+    Queue.prototype.run = function (err) {
         var _this = this;
+        if (err === void 0) { err = null; }
         if (!this.isRunning) {
             return;
         }
         else if (this.tasks.length) {
             var task = this.tasks.shift();
-            if (typeof Promise == "function" && task instanceof Promise) {
-                return task.then(function () { return _this.run(); });
+            if (isAsyncFunction(task) && task.length == 0) {
+                task().then(function () { return _this.run(err); });
             }
-            else if (typeof task == "function") {
-                if (task.constructor.name == "AsyncFunction" && task.length == 0) {
-                    return task().then(function () { return _this.run(); });
-                }
-                else {
-                    return task(function () { return _this.run(); });
-                }
+            else if (task.length) {
+                task(function (_err) { return _this.run(_err); }, err);
             }
             else {
-                return this.run();
+                task();
+                this.run(err);
             }
         }
         else if (!this.onNewTask) {
-            this.onNewTask = function () { return _this.run(); };
+            this.onNewTask = function () { return _this.run(err); };
         }
     };
     return Queue;

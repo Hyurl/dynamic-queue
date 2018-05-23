@@ -1,32 +1,27 @@
-const Queue = require("../").default;
-const assert = require("assert");
+var Queue = require("../").default;
+var assert = require("assert");
 
 var outs = [];
 
 // instantiate with a first task.
-var queue = new Queue((next) => {
+var queue = new Queue(function (next) {
     outs.push("Hello, World!");
     next();
 });
 
-// push a promise.
-queue.push(new Promise((resolve) => {
-    setTimeout(() => {
-        resolve("Hi, Ayon!");
-    }, 100);
-}).then(value => {
-    outs.push(value);
-}));
+// push a new task.
+queue.push(function (next) {
+    setTimeout(function () {
+        outs.push("Hi, Ayon!");
+        next();
+    }, 200);
+});
 
-// push a funciton.
-queue.push(new Promise(resolve => {
-    setTimeout(() => {
-        resolve();
-    }, 100);
-}).then(() => {
+// push a new task and don't pass the `next`.
+queue.push(function () {
     assert.deepStrictEqual(outs, ["Hello, World!", "Hi, Ayon!"]);
     outs.pop();
-}));
+});
 
 // push another functon.
 queue.push(function (next) {
@@ -34,7 +29,7 @@ queue.push(function (next) {
     next();
 });
 
-queue.push((next) => {
+queue.push(function (next) {
     if (parseFloat(process.version.slice(1)) > 7.6) {
         require("./test-async-function");
     }
@@ -42,6 +37,14 @@ queue.push((next) => {
     next();
 });
 
-queue.push(() => {
-    console.log("All tests passed!");
+// pass error
+queue.push(function (next) {
+    next(new Error);
+}).push(function (next, err) {
+    assert.equal(err.name, "Error");
+    next();
+});
+
+queue.push(function () {
+    console.log("#### OK ####");
 });
