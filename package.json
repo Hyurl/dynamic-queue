@@ -1,6 +1,6 @@
 {
   "name": "dynamic-queue",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Asynchronous Node.js queue with dynamic tasks.",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/Hyurl/dynamic-queue/issues"
   },
-  "homepage": "https://github.com/Hyurl/dynamic-queue#readme"
+  "homepage": "https://github.com/Hyurl/dynamic-queue#readme",
+  "devDependencies": {
+    "@types/node": "^10.9.4"
+  }
 }

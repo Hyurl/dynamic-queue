@@ -23,7 +23,7 @@ var Queue = /** @class */ (function () {
         this.onNewTask = null;
         task ? this.push(task) : null;
         this.run();
-        process.on("beforeExit", function (code) {
+        process.once("beforeExit", function (code) {
             !code ? _this.isRunning = true : null;
         });
     }
@@ -52,7 +52,7 @@ var Queue = /** @class */ (function () {
         this.isRunning = true;
         this.run();
     };
-    /** Recursively runs tasks one by one. */
+    /** Runs tasks one by one in series. */
     Queue.prototype.run = function (err) {
         var _this = this;
         if (err === void 0) { err = null; }

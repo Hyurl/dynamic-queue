@@ -49,7 +49,7 @@ queue.push(() => {
 
 ## Pass Error
 
-You can pass an error throw the whole queue by passing the second argument 
+You can pass an error through the whole queue by passing the second argument 
 `err` to the task function, and transmit an error via `next(err)`, just 
 like this:
 
@@ -89,10 +89,10 @@ list.
 The queue will be automatically closed when no more procedures are going to 
 run, you don't have to call `queue.stop()` normally.
 
-When push a task, you can either pass or don't pass the `next` argument. If 
-it's passed, you must call it manually. If it's omitted, the next
-task will be called when the current one finishes running.
+When push a task, you can either pass or don't pass the `next` argument. If it's
+passed, you must call it manually. If it's omitted, the next task will be called
+when the current one finishes running.
 
 If you passed the `next` argument and yet not calling it, then the queue will 
-hang and any left or new task will never run. You must call `queue.resume()` 
-if you want the queue to continue running.
+hang and any left or new task will never run. You must call `queue.resume()` if 
+you want the queue to continue running.

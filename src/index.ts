@@ -25,7 +25,7 @@ export class Queue {
         task ? this.push(task) : null;
         this.run();
 
-        process.on("beforeExit", (code) => {
+        process.once("beforeExit", (code) => {
             !code ? this.isRunning = true : null;
         });
     }
@@ -60,7 +60,7 @@ export class Queue {
         this.run();
     }
 
-    /** Recursively runs tasks one by one. */
+    /** Runs tasks one by one in series. */
     private run(err: Error = null): void {
         if (!this.isRunning) {
             return;
