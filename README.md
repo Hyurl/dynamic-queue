@@ -46,6 +46,7 @@ queue.push(() => {
 - `queue.stop()` Stops the queue manually.
 - `queue.resume()` Continues running the queue after it has been stopped or 
     hanged.
+- `queue.length` Returns the waiting tasks' length.
 
 ## Pass Error
 

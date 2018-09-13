@@ -27,6 +27,14 @@ var Queue = /** @class */ (function () {
             !code ? _this.isRunning = true : null;
         });
     }
+    Object.defineProperty(Queue.prototype, "length", {
+        /** Returns the waiting tasks' length. */
+        get: function () {
+            return this.tasks.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /** Pushes a new task to the queue. */
     Queue.prototype.push = function (task) {
         if (typeof task != "function") {

@@ -30,6 +30,11 @@ export class Queue {
         });
     }
 
+    /** Returns the waiting tasks' length. */
+    get length() {
+        return this.tasks.length;
+    }
+
     /** Pushes a new task to the queue. */
     push(task: TaskFunction): this {
         if (typeof task != "function") {
