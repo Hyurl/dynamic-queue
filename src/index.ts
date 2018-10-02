@@ -1,7 +1,3 @@
-function isAsyncFunction(fn: Function): boolean {
-    return Object.prototype.toString.apply(fn.constructor).slice(8, -1) == "AsyncFunction";
-}
-
 export type TaskFunction = (next?: (err?: Error) => void, err?: Error) => void | Promise<void>;
 
 /**
@@ -67,13 +63,15 @@ export class Queue {
         } else if (this.tasks.length) {
             let task = this.tasks.shift();
 
-            if (isAsyncFunction(task) && task.length == 0) {
-                (<Promise<any>>task()).then(() => this.run(err));
-            } else if (task.length) {
+            if (task.length) {
                 task((_err) => this.run(_err), err);
             } else {
-                task();
-                this.run(err);
+                let res = task();
+                if (res && typeof res.then == "function") {
+                    res.then(() => this.run(err));
+                } else {
+                    this.run(err);
+                }
             }
         } else if (!this.onNewTask) {
             this.onNewTask = () => this.run(err);

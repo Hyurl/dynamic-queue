@@ -30,6 +30,11 @@ queue.push(function (next) {
 });
 
 queue.push(function (next) {
+    require("./test-promise");
+    next();
+});
+
+queue.push(function (next) {
     if (parseFloat(process.version.slice(1)) > 7.6) {
         require("./test-async-function");
     }

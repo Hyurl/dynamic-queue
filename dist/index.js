@@ -1,8 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function isAsyncFunction(fn) {
-    return Object.prototype.toString.apply(fn.constructor).slice(8, -1) == "AsyncFunction";
-}
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
@@ -61,15 +58,17 @@ var Queue = /** @class */ (function () {
         }
         else if (this.tasks.length) {
             var task = this.tasks.shift();
-            if (isAsyncFunction(task) && task.length == 0) {
-                task().then(function () { return _this.run(err); });
-            }
-            else if (task.length) {
+            if (task.length) {
                 task(function (_err) { return _this.run(_err); }, err);
             }
             else {
-                task();
-                this.run(err);
+                var res = task();
+                if (res && typeof res.then == "function") {
+                    res.then(function () { return _this.run(err); });
+                }
+                else {
+                    this.run(err);
+                }
             }
         }
         else if (!this.onNewTask) {
