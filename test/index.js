@@ -1,7 +1,10 @@
+require("source-map-support/register");
 var Queue = require("../").default;
 var assert = require("assert");
+var logs = require("./logs");
 
 var outs = [];
+var oldNode = parseFloat(process.version.slice(1)) < 7.6;
 
 // instantiate with a first task.
 var queue = new Queue(function (next) {
@@ -26,30 +29,38 @@ queue.push(function () {
 // push another functon.
 queue.push(function (next) {
     assert.deepEqual(outs, ["Hello, World!"]);
+    logs.push("AAA");
     next();
 });
 
-queue.push(function (next) {
-    require("./test-promise");
-    next();
-});
-
-queue.push(function (next) {
-    if (parseFloat(process.version.slice(1)) > 7.6) {
-        require("./test-async-function");
-    }
-
-    next();
-});
-
-// pass error
-queue.push(function (next) {
-    next(new Error);
-}).push(function (next, err) {
-    assert.equal(err.name, "Error");
-    next();
+// push a function that will return a queue
+queue.push(function () {
+    return require("./test-promise");
 });
 
 queue.push(function () {
-    console.log("#### OK ####");
+    return require("./test-handle-error");
 });
+
+queue.push(function () {
+    if (!oldNode) {
+        return require("./test-async-function");
+    }
+});
+
+let res;
+setTimeout(() => {
+    queue.push(function () {
+        if (!oldNode)
+            assert.deepEqual(logs, ["AAA", "BBB", "CCC", "DDD", "EEE"]);
+        else
+            assert.deepEqual(logs, ["AAA", "BBB", "CCC", "DDD"]);
+
+        res = "#### OK ####";
+    });
+}, 300);
+
+setTimeout(() => {
+    assert.equal(res, "#### OK ####");
+    console.log(res);
+}, 400);

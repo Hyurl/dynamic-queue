@@ -1,5 +1,6 @@
 const { Queue } = require("../");
 const assert = require("assert");
+var logs = require("./logs");
 
 var outs = [];
 
@@ -10,5 +11,8 @@ queue.push(async () => {
 }).push(async () => {
     outs.push("Hi, Ayon!");
 }).push(() => {
+    logs.push("EEE");
     assert.deepEqual(outs, ["Hello, World!", "Hi, Ayon!"]);
 });
+
+module.exports = queue;

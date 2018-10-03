@@ -2,6 +2,8 @@
 
 **Asynchronous Node.js queue with dynamic tasks.**
 
+The API is for **dynamic-queue** 0.2.0+, old versions are deprecated.
+
 ## Install
 
 ```sh
@@ -40,45 +42,15 @@ queue.push(() => {
 ## API
 
 - `new Queue(task?: TaskFunction)`
-    - type `TaskFunction` = `(next?: (err?: Error) => void, err?: Error) => void | Promise<void>`
+    - type `TaskFunction` = `(next?: () => void) => void | Promise<void> | Queue`
+- `queue.length` Returns the waiting tasks' length.
 - `queue.push(task?: TaskFunction): this` Pushes 
     a new task to the queue.
 - `queue.stop()` Stops the queue manually.
 - `queue.resume()` Continues running the queue after it has been stopped or 
     hanged.
-
-## Pass Error
-
-You can pass an error through the whole queue by passing the second argument 
-`err` to the task function, and transmit an error via `next(err)`, just 
-like this:
-
-```javascript
-queue.push((next) => {
-    try {
-        // ...
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
-
-queue.push((next, err) => {
-    if (err)
-        return next(err);
-
-    // ...
-    next();
-});
-
-queue.push((next, err) => {
-    if (err) {
-        console.log(err);
-    } else {
-        console.log("All tasks run successfully!");
-    }
-});
-```
+- `queue.catch(handler: (err: any, resume?: () => void) => void)` Adds an error 
+    handler to catch any error occurred during running the task.
 
 ## Notes
 
@@ -89,10 +61,87 @@ list.
 The queue will be automatically closed when no more procedures are going to 
 run, you don't have to call `queue.stop()` normally.
 
-When push a task, you can either pass or don't pass the `next` argument. If it's
-passed, you must call it manually. If it's omitted, the next task will be called
-when the current one finishes running.
+The queue will be auto-stopped if any error occurred, you cat set an error 
+handler via `queue.catch()` method, and call `resume()` to continue running 
+tasks.
+
+When pushing a task, you can either pass or don't pass the `next` argument. If 
+it's passed, you must call it manually. If it's omitted, the next task will be 
+called when the current one finishes running.
 
 If you passed the `next` argument and yet not calling it, then the queue will 
 hang and any left or new task will never run. You must call `queue.resume()` if 
 you want the queue to continue running.
+
+## Nested Queues
+
+This package allows you nest queues inside an existing one, similar to `Promise`,
+you just need to return a new `Queue` inside one of the task function, and the 
+outer-queue will wait until all the remaining tasks in the inner-queue are 
+executed before continue running its own tasks. Just like this:
+
+```javascript
+var queue = new Queue();
+
+queue.push(() => {
+    console.log(1);
+});
+
+queue.push(() => {
+    var innerQueue = new Queue();
+    
+    innerQueue.push(() => {
+        console.log(2);
+    });
+
+    innerQueue.push(() => {
+        console.log(3);
+    });
+
+    return innerQueue;
+});
+
+queue.push(() => {
+    console.log(4);
+});
+
+// the output sequence would be: 1, 2, 3, 4
+```
+
+## Catch Errors
+
+As mentioned above, you can catch any error occurred during the runtime.
+
+```javascript
+var queue = new Queue();
+
+queue.catch((err, resume) => {
+    console.log(err.stack);
+    resume(); // continue running tasks
+});
+
+queue.push(() => {
+    throw new Error("this error will be caught");
+});
+
+queue.push(() => {
+    console.log("Hello, World!");
+});
+
+// The output sequence would be:
+// => this error will be caught
+// => Hello, World!
+```
+
+### Warning
+
+If an inner-queue throws an error and doesn't have a handler to catch it, the 
+outer-queue's error handler will be copied into the inner one.
+
+## Promises
+
+When running asynchronous tasks, you either passing and calling the `next` 
+function, or push an `async` function, or any function that returns a `Promise`,
+as a matter of fact, in TypeScript or babel, the `async` function will be 
+converted to an ordinary function that returns a promise if the target ES 
+version doesn't support AsyncFunction.
