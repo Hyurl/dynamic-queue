@@ -146,8 +146,8 @@ call `queue.stop()` to stop the queue completely.
 
 ## Promises
 
-When running asynchronous tasks, you can either passing and calling the `next` 
-function, or push an `async` function, or any function that returns a `Promise`,
-as a matter of fact, in TypeScript or babel, the `async` function will be 
+When running asynchronous tasks, you can either pass and call the `next` 
+function, or push an `async` function, or any function that returns a `Promise`.
+As a matter of fact, in TypeScript or babel, the `async` function will be 
 converted to an ordinary function that returns a promise if the target ES 
 version doesn't support AsyncFunction.
