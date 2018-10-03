@@ -117,9 +117,11 @@ As mentioned above, you can catch any error occurred during the runtime.
 ```javascript
 var queue = new Queue();
 
-queue.catch((err, resume) => {
+queue.catch((err) => {
     console.log(err.stack);
-    resume(); // continue running tasks
+    // `queue.state` is `paused`
+    queue.resume(); // continue running tasks
+    // `queue.state` will be `pending`
 });
 
 queue.push(() => {
