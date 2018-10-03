@@ -39,6 +39,8 @@ queue.push(() => {
 });
 ```
 
+More examples, please [visit here](./test).
+
 ## API
 
 - `new Queue(task?: TaskFunction)`
@@ -144,7 +146,7 @@ call `queue.stop()` to stop the queue completely.
 
 ## Promises
 
-When running asynchronous tasks, you either passing and calling the `next` 
+When running asynchronous tasks, you can either passing and calling the `next` 
 function, or push an `async` function, or any function that returns a `Promise`,
 as a matter of fact, in TypeScript or babel, the `async` function will be 
 converted to an ordinary function that returns a promise if the target ES 
