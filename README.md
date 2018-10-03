@@ -1,6 +1,6 @@
 # DynamicQueue
 
-**Asynchronous Node.js queue with dynamic tasks.**
+**A dynamic queue accepts new tasks at any moment and never stops running.**
 
 The API is for **dynamic-queue** 0.2.0+, old versions are deprecated.
 
@@ -43,7 +43,10 @@ queue.push(() => {
 
 - `new Queue(task?: TaskFunction)`
     - type `TaskFunction` = `(next?: () => void) => void | Promise<void> | Queue`
-- `queue.length` Returns the waiting tasks' length.
+- `queue.length` Returns the length of waiting tasks.
+- `queue.state` The state of queue is either `pending` (by default), `paused` or
+    `stopped`.
+- `queue.isRunning` Whether the queue is running (`state` is not `stopped`).
 - `queue.push(task?: TaskFunction): this` Pushes 
     a new task to the queue.
 - `queue.stop()` Stops the queue manually.
@@ -59,11 +62,8 @@ otherwise the queue will continue running any task that pushed to internal
 list.
 
 The queue will be automatically closed when no more procedures are going to 
-run, you don't have to call `queue.stop()` normally.
-
-The queue will be auto-stopped if any error occurred, you cat set an error 
-handler via `queue.catch()` method, and call `resume()` to continue running 
-tasks.
+run (generally before existing the program), you don't have to call 
+`queue.stop()` normally.
 
 When pushing a task, you can either pass or don't pass the `next` argument. If 
 it's passed, you must call it manually. If it's omitted, the next task will be 
@@ -137,6 +137,10 @@ queue.push(() => {
 
 If an inner-queue throws an error and doesn't have a handler to catch it, the 
 outer-queue's error handler will be copied into the inner one.
+
+The queue will be paused if any error occurred, you can set an error handler via
+`queue.catch()` method, and call `queue.resume()` to continue running tasks, or 
+call `queue.stop()` to stop the queue completely.
 
 ## Promises
 

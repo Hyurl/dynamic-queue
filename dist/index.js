@@ -10,26 +10,33 @@ var Queue = /** @class */ (function () {
      */
     function Queue(task) {
         var _this = this;
-        /**
-         * Whether the queue is running. A queue is auto-started when it's
-         * instantiated, unless you call `stop()`, otherwise this property is
-         * `true`.
-         */
-        this.isRunning = true;
+        this.state = "pending";
         this.tasks = [];
         this.onNewTask = null;
         task ? this.push(task) : null;
         setImmediate(function () {
             _this.run();
         });
-        process.once("beforeExit", function (code) {
-            !code ? _this.isRunning = true : null;
+        process.once("beforeExit", function () {
+            _this.state = "stopped";
         });
     }
     Object.defineProperty(Queue.prototype, "length", {
-        /** Returns the waiting tasks' length. */
+        /** Returns the length of waiting tasks. */
         get: function () {
             return this.tasks.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Queue.prototype, "isRunning", {
+        /**
+         * Whether the queue is running. A queue is auto-started when it's
+         * instantiated, unless you call `stop()`, otherwise this property is
+         * `true`.
+         */
+        get: function () {
+            return this.state != "stopped";
         },
         enumerable: true,
         configurable: true
@@ -39,7 +46,7 @@ var Queue = /** @class */ (function () {
         if (typeof task != "function") {
             throw new TypeError("task must be a function");
         }
-        else if (!this.isRunning) {
+        else if (this.state == "stopped") {
             throw new Error("pushing task to a stopped queue is not allowed");
         }
         this.tasks.push(task);
@@ -52,11 +59,11 @@ var Queue = /** @class */ (function () {
     };
     /** Stops the queue manually. */
     Queue.prototype.stop = function () {
-        this.isRunning = false;
+        this.state = "stopped";
     };
-    /** Continues running the queue after it has been stopped or hanged. */
+    /** Continues running the queue after it has been stopped or hanged/paused. */
     Queue.prototype.resume = function () {
-        this.isRunning = true;
+        this.state = "pending";
         this.run();
     };
     /**
@@ -68,7 +75,7 @@ var Queue = /** @class */ (function () {
     /** Runs tasks one by one in series. */
     Queue.prototype.run = function () {
         var _this = this;
-        if (!this.isRunning) {
+        if (this.state == "paused" || this.state == "stopped") {
             return;
         }
         else if (this.tasks.length) {
@@ -113,10 +120,9 @@ var Queue = /** @class */ (function () {
         }
     };
     Queue.prototype.handleError = function (err) {
-        var _this = this;
-        this.stop();
+        this.state = "paused";
         if (this.onError) {
-            this.onError(err, function () { return _this.resume(); });
+            this.onError(err);
         }
         else {
             throw err;

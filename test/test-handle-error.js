@@ -13,10 +13,10 @@ queue.push(function () {
 }).push(function () {
     assert.deepEqual(outs, ["Hello, World!"]);
     logs.push("DDD");
-}).catch(function (err, resume) {
+}).catch(function (err) {
     assert.equal(err.message, "This error will cause the queue to stop.");
     logs.push("CCC");
-    resume();
+    queue.resume();
 });
 
 module.exports = queue;
