@@ -9,12 +9,12 @@ var queue = new Queue();
 queue.push(function () {
     outs.push("Hello, World!");
 }).push(function () {
-    throw new Error("This error will cause the queue to stop.");
+    throw new Error("This error will cause the queue to pause.");
 }).push(function () {
     assert.deepEqual(outs, ["Hello, World!"]);
     logs.push("DDD");
 }).catch(function (err) {
-    assert.equal(err.message, "This error will cause the queue to stop.");
+    assert.equal(err.message, "This error will cause the queue to pause.");
     logs.push("CCC");
     queue.resume();
 });
