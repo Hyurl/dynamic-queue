@@ -1,4 +1,4 @@
-var { Queue } = require("../");
+var Queue = require("../").default;
 var assert = require("assert");
 var logs = require("./logs");
 
