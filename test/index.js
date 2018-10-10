@@ -26,7 +26,7 @@ queue.push(function () {
     outs.pop();
 });
 
-// push another functon.
+// push another function.
 queue.push(function (next) {
     assert.deepEqual(outs, ["Hello, World!"]);
     logs.push("AAA");
@@ -48,7 +48,7 @@ queue.push(function () {
     }
 });
 
-let res;
+var res;
 setTimeout(() => {
     queue.push(function () {
         if (!oldNode)
