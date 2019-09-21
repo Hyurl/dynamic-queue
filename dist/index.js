@@ -13,13 +13,8 @@ var Queue = /** @class */ (function () {
         this.state = "pending";
         this.tasks = [];
         this.onNewTask = null;
-        task ? this.push(task) : null;
-        setImmediate(function () {
-            _this.run();
-        });
-        process.once("beforeExit", function () {
-            _this.state = "stopped";
-        });
+        task && this.push(task);
+        setImmediate(function () { return _this.run(); });
     }
     Object.defineProperty(Queue.prototype, "length", {
         /** Returns the length of waiting tasks. */

@@ -1,6 +1,6 @@
 {
   "name": "dynamic-queue",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A dynamic queue accepts new tasks at any moment and never stops running.",
   "main": "dist/index.js",
   "types": "src/index.ts",

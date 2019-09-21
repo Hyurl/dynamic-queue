@@ -3,7 +3,7 @@ export type TaskFunction = (next?: () => void) => void | Promise<void> | Queue;
 /**
  * Asynchronous Node.js queue with dynamic tasks.
  */
-export class Queue {    
+export class Queue {
     state: "pending" | "paused" | "stopped" = "pending";
     private tasks: Array<TaskFunction> = [];
     private onNewTask: () => void = null;
@@ -14,15 +14,8 @@ export class Queue {
      * @param task The first task that is about to run. 
      */
     constructor(task?: TaskFunction) {
-        task ? this.push(task) : null;
-
-        setImmediate(() => {
-            this.run();
-        });
-
-        process.once("beforeExit", () => {
-            this.state = "stopped";
-        });
+        task && this.push(task);
+        setImmediate(() => this.run());
     }
 
     /** Returns the length of waiting tasks. */
